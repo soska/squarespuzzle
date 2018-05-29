@@ -49,7 +49,7 @@ const randomMoves = n => {
   return moves;
 };
 
-const Tile = ({ size, tile, color }) => (
+const Tile = ({ size, tile, color, onClick }) => (
   <div
     css={{
       width: `${size}px`,
@@ -61,6 +61,11 @@ const Tile = ({ size, tile, color }) => (
       alignItems: 'center',
       fontSize: '24px',
       boxShadow: 'rgba(255,255,255,.5) 1px 2px 0 inset',
+      cursor: 'pointer',
+    }}
+    onClick={e => {
+      e.preventDefault();
+      onClick(tile);
     }}
     style={{
       background: color,
@@ -92,7 +97,7 @@ const BlankTile = ({ size }) => (
   />
 );
 
-const Board = ({ size = 4, tiles }) => {
+const Board = ({ size = 4, tiles, onClick }) => {
   const max = tiles.length - 1;
   return (
     <div
@@ -114,7 +119,8 @@ const Board = ({ size = 4, tiles }) => {
               key={`${index}`}
               size={tileSize}
               tile={tile}
-              color={`hsla(${map(tile, 0, max, 20, 320)},30%,75%,1)`}
+              color={`hsla(${map(tile, 0, max, 120, 320)},30%,75%,1)`}
+              onClick={onClick}
             />
           )
       )}
@@ -265,6 +271,36 @@ class Game extends React.Component {
       );
     });
 
+  onTileClick = tile => {
+    const tileIndex = this.state.tiles.indexOf(tile);
+    const tilePosition = this.indexToPosition(tileIndex);
+    const blankIndex = this.state.tiles.indexOf(null);
+    const blankPosition = this.indexToPosition(blankIndex);
+
+    let distance;
+
+    console.log({ tilePosition, blankPosition });
+
+    // same row
+    if (blankPosition.y === tilePosition.y) {
+      distance = blankPosition.x - tilePosition.x;
+      if (distance === 1) {
+        this.move([RIGHT]);
+      }
+      if (distance === -1) {
+        this.move([LEFT]);
+      }
+    } else if (blankPosition.x === tilePosition.x) {
+      distance = blankPosition.y - tilePosition.y;
+      if (distance === 1) {
+        this.move([DOWN]);
+      }
+      if (distance === -1) {
+        this.move([UP]);
+      }
+    }
+  };
+
   checkWinCondition() {
     const { tiles, started } = this.state;
 
@@ -304,7 +340,11 @@ class Game extends React.Component {
             }}
           />
         )}
-        <Board tiles={tiles} size={this.props.size} />
+        <Board
+          tiles={tiles}
+          size={this.props.size}
+          onClick={this.onTileClick}
+        />
       </Fragment>
     );
   }
